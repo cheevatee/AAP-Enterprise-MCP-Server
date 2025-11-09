@@ -613,6 +613,76 @@ async def update_project(project_id: int) -> Any:
     return await make_request(f"{AAP_URL}/projects/{project_id}/update/", method="POST")
 
 
+@mcp.tool()
+async def list_credentials() -> list[dict[str, Any]]:
+    """
+    List credentials in Ansible Automation Platform (AAP).
+
+    Calls the AAP API endpoint:
+      GET /credentials/
+
+    Returns:
+        A list of credential objects (as dictionaries), e.g.
+        [
+          {"id": 1, "name": "Machine Credential", "credential_type": 1, ...},
+          ...
+        ]
+    """
+
+    url = f"{AAP_URL}/credentials/"
+
+    response = await make_request(
+        url,
+        method="GET",
+    )
+
+    # Typical AAP response:
+    # {
+    #   "count": N,
+    #   "results": [ {...}, {...}, ... ]
+    # }
+    if isinstance(response, dict) and "results" in response:
+        return response["results"]
+
+    # Fallback if AAP or make_request behaves differently
+    return response
+
+
+@mcp.tool()
+async def list_execution_environments() -> list[dict[str, Any]]:
+    """
+    List execution environments in Ansible Automation Platform (AAP).
+
+    Calls the AAP API endpoint:
+      GET /execution_environments/
+
+    Returns:
+        A list of execution environment objects (as dictionaries), e.g.
+        [
+          {"id": 1, "name": "Default EE", "image": "quay.io/ansible/awx-ee", ...},
+          ...
+        ]
+    """
+
+    url = f"{AAP_URL}/execution_environments/"
+
+    response = await make_request(
+        url,
+        method="GET",
+    )
+
+    # Typical AAP response format:
+    # {
+    #   "count": N,
+    #   "results": [ {...}, {...}, ... ]
+    # }
+    if isinstance(response, dict) and "results" in response:
+        return response["results"]
+
+    # Fallback if make_request already unwraps or behaves differently
+    return response
+
+
 # Galaxy API Helper Functions
 async def search_galaxy_api(endpoint: str, params: dict = None) -> Any:
     """Helper function to make requests to Ansible Galaxy API."""
