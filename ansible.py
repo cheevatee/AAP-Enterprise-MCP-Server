@@ -111,34 +111,28 @@ async def create_project(
 @mcp.tool()
 async def get_project_playbooks(
     project_id: int,
-    scm_branch: str | None = None,
 ) -> list[str]:
     """
     Get the list of Ansible playbooks available in a given AAP project.
 
-    This calls the AAP API endpoint:
+    Calls the AAP API endpoint:
       GET /projects/{id}/playbooks/
 
     Args:
         project_id: Numeric ID of the project in AAP.
-        scm_branch: Optional SCM branch to list playbooks from.
 
     Returns:
         A list of playbook paths (strings), e.g. ["site.yml", "playbooks/deploy.yml"].
     """
+    
+    url = f"{AAP_URL}/projects/{project_id}/playbooks/"
 
-    params = {}
-    if scm_branch:
-        params["scm_branch"] = scm_branch
-
-    # Depends on your existing helper & AAP_URL constant
     response = await make_request(
-        f"{AAP_URL}/projects/{project_id}/playbooks/",
+        url,
         method="GET",
-        params=params,
     )
 
-    # AAP usually returns a raw list of strings here, but be defensive
+    # AAP often returns a list of strings directly; be defensive
     if isinstance(response, dict) and "results" in response:
         return response["results"]
 
