@@ -212,14 +212,17 @@ async def create_job_template(
         "limit": limit,
         "verbosity": verbosity,
         "timeout": timeout,
-        "ask_variables_on_launch": bool(extra_vars),
-        "ask_tags_on_launch": bool(job_tags),
-        "ask_skip_tags_on_launch": bool(skip_tags),
-        "ask_credential_on_launch": credential_id is None,
-        "ask_execution_environment_on_launch": execution_environment_id is None,
-        "ask_labels_on_launch": labels is None,
+
+        # 🔽 NO "Prompt on launch" for these
+        "ask_variables_on_launch": False,
+        "ask_tags_on_launch": False,
+        "ask_skip_tags_on_launch": False,
+        "ask_credential_on_launch": False,
+        "ask_execution_environment_on_launch": False,
+        "ask_labels_on_launch": False,
         "ask_inventory_on_launch": False,
         "ask_job_type_on_launch": False,
+
         "become_enabled": privilege_escalation,
         "allow_simultaneous": concurrent_jobs,
         "scm_branch": "",
@@ -238,14 +241,14 @@ async def create_job_template(
     if extra_vars:
         payload["extra_vars"] = extra_vars
 
-    # 1) Create the job template
     jt = await make_request(
         f"{AAP_URL}/job_templates/",
         method="POST",
         json=payload,
     )
 
-    # 2) Attach credential via the dedicated endpoint (multi-credential API)
+    # (optional) if you still want to auto-attach a credential via the
+    # /job_templates/{id}/credentials/ endpoint, you can keep this block:
     if credential_id and isinstance(jt, dict) and "id" in jt:
         jt_id = jt["id"]
         await make_request(
@@ -253,8 +256,6 @@ async def create_job_template(
             method="POST",
             json={"associate": True, "id": credential_id},
         )
-
-        # Optional: refresh the job template to return updated data
         jt = await make_request(
             f"{AAP_URL}/job_templates/{jt_id}/",
             method="GET",
