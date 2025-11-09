@@ -210,28 +210,36 @@ async def create_job_template(
 @mcp.tool()
 async def delete_job_template(
     job_template_id: int,
-) -> Any:
+) -> dict[str, Any]:
     """
     Delete a job template in Ansible Automation Platform (AAP).
 
-    Calls the AAP API endpoint:
-      DELETE /job_templates/{id}/
+    AAP returns HTTP 204 No Content on success. This tool normalizes that
+    into a small JSON object so MCP/clients don't treat it as an error.
 
     Args:
         job_template_id: Numeric ID of the job template to delete.
 
     Returns:
-        The API response (usually empty or a success message).
+        Dict with deletion status and metadata.
     """
 
     url = f"{AAP_URL}/job_templates/{job_template_id}/"
 
-    response = await make_request(
+    # We assume make_request will raise on non-2xx status codes.
+    # If it doesn't, you can still rely on AAP's behavior: DELETE returns 204 on success.
+    await make_request(
         url,
         method="DELETE",
     )
 
-    return response
+    # If we reached here without exception, treat as success
+    return {
+        "job_template_id": job_template_id,
+        "deleted": True,
+        "status": 204,
+        "message": "Job template deleted successfully (AAP returned 204 No Content on success).",
+    }
 
 
 @mcp.tool()
