@@ -214,6 +214,12 @@ This project implements a **four-server MCP architecture** for comprehensive Red
 | `get_project_update` | Get project update job status |
 | `get_project_update_logs` | Get project update job logs |
 | `update_project` | Trigger project update (SCM sync) |
+| `get_project_playbooks` | Fetches the list of playbooks available in a specific AAP project. |
+| `delete_job_template` | Deletes an existing job template from Ansible Automation Platform. |
+| `delete_job` | Deletes a specific job (job run/history) from AAP. |
+| `delete_project_update` | Deletes a specific project update record (sync run) from AAP. |
+| `list_credentials` | Lists all credentials configured in Ansible Automation Platform. |
+| `list_execution_environments` | Lists all execution environments available in Ansible Automation Platform. |
 
 ### Ansible Galaxy Search Tools
 
