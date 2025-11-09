@@ -218,8 +218,8 @@ async def create_job_template(
         "ask_credential_on_launch": credential_id is None,
         "ask_execution_environment_on_launch": execution_environment_id is None,
         "ask_labels_on_launch": labels is None,
-        "ask_inventory_on_launch": False,  # Inventory is required, so not prompting
-        "ask_job_type_on_launch": False,  # Job type is required, so not prompting
+        "ask_inventory_on_launch": False,
+        "ask_job_type_on_launch": False,
         "become_enabled": privilege_escalation,
         "allow_simultaneous": concurrent_jobs,
         "scm_branch": "",
@@ -227,8 +227,6 @@ async def create_job_template(
         "prevent_instance_group_fallback": prevent_instance_group_fallback,
     }
 
-    if credential_id:
-        payload["credential"] = credential_id
     if execution_environment_id:
         payload["execution_environment"] = execution_environment_id
     if labels:
@@ -240,7 +238,29 @@ async def create_job_template(
     if extra_vars:
         payload["extra_vars"] = extra_vars
 
-    return await make_request(f"{AAP_URL}/job_templates/", method="POST", json=payload)
+    # 1) Create the job template
+    jt = await make_request(
+        f"{AAP_URL}/job_templates/",
+        method="POST",
+        json=payload,
+    )
+
+    # 2) Attach credential via the dedicated endpoint (multi-credential API)
+    if credential_id and isinstance(jt, dict) and "id" in jt:
+        jt_id = jt["id"]
+        await make_request(
+            f"{AAP_URL}/job_templates/{jt_id}/credentials/",
+            method="POST",
+            json={"associate": True, "id": credential_id},
+        )
+
+        # Optional: refresh the job template to return updated data
+        jt = await make_request(
+            f"{AAP_URL}/job_templates/{jt_id}/",
+            method="GET",
+        )
+
+    return jt
 
 
 @mcp.tool()
