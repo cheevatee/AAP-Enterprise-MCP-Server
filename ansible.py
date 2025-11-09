@@ -571,6 +571,43 @@ async def get_project_update_logs(update_id: int) -> str:
 
 
 @mcp.tool()
+async def delete_project_update(
+    project_update_id: int,
+) -> dict[str, Any]:
+    """
+    Delete a project update (Source Control Update) in Ansible Automation Platform (AAP).
+
+    Calls the AAP API endpoint:
+      DELETE /project_updates/{id}/
+
+    AAP typically returns HTTP 204 No Content on success.
+    This tool normalizes that into a JSON response so MCP clients
+    don't treat the empty body as an error.
+
+    Args:
+        project_update_id: Numeric ID of the project update to delete.
+
+    Returns:
+        Dict with deletion status and metadata.
+    """
+
+    url = f"{AAP_URL}/project_updates/{project_update_id}/"
+
+    # Assumes make_request raises on non-2xx/3xx status codes.
+    await make_request(
+        url,
+        method="DELETE",
+    )
+
+    return {
+        "project_update_id": project_update_id,
+        "deleted": True,
+        "status": 204,
+        "message": "Project update (Source Control Update) deleted successfully (AAP returned 204 No Content on success).",
+    }
+
+
+@mcp.tool()
 async def update_project(project_id: int) -> Any:
     """Trigger a project update (SCM sync) for a specific project."""
     return await make_request(f"{AAP_URL}/projects/{project_id}/update/", method="POST")
