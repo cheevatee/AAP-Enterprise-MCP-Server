@@ -64,6 +64,42 @@ async def job_logs(job_id: int) -> str:
 
 
 @mcp.tool()
+async def delete_job(
+    job_id: int,
+) -> dict[str, Any]:
+    """
+    Delete a job in Ansible Automation Platform (AAP).
+
+    Calls the AAP API endpoint:
+      DELETE /jobs/{id}/
+
+    AAP typically returns HTTP 204 No Content on success.
+    This tool normalizes that into a JSON response.
+
+    Args:
+        job_id: Numeric ID of the job to delete.
+
+    Returns:
+        Dict with deletion status and metadata.
+    """
+
+    url = f"{AAP_URL}/jobs/{job_id}/"
+
+    # Assumes make_request raises on non-2xx codes.
+    await make_request(
+        url,
+        method="DELETE",
+    )
+
+    return {
+        "job_id": job_id,
+        "deleted": True,
+        "status": 204,
+        "message": "Job deleted successfully (AAP returned 204 No Content on success).",
+    }
+
+
+@mcp.tool()
 async def create_project(
     name: str,
     organization_id: int,
