@@ -208,6 +208,33 @@ async def create_job_template(
 
 
 @mcp.tool()
+async def delete_job_template(
+    job_template_id: int,
+) -> Any:
+    """
+    Delete a job template in Ansible Automation Platform (AAP).
+
+    Calls the AAP API endpoint:
+      DELETE /job_templates/{id}/
+
+    Args:
+        job_template_id: Numeric ID of the job template to delete.
+
+    Returns:
+        The API response (usually empty or a success message).
+    """
+
+    url = f"{AAP_URL}/job_templates/{job_template_id}/"
+
+    response = await make_request(
+        url,
+        method="DELETE",
+    )
+
+    return response
+
+
+@mcp.tool()
 async def list_inventory_sources() -> Any:
     """List all inventory sources in Ansible Automation Platform."""
     return await make_request(f"{AAP_URL}/inventory_sources/")
